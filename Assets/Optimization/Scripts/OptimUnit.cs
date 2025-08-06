@@ -31,11 +31,50 @@ public class OptimUnit : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        Profiler.BeginSample("Handling Time"); // begin profiling a piece of code with a custom label
         HandleTime();
+        Profiler.EndSample(); // ends the current profiling sample
+
+        Profiler.BeginSample("Rotating"); // begin profiling
 
         var t = transform;
         float xRotation = currentAngularVelocity * Time.deltaTime;
         float zRotation = currentAngularVelocity * Time.deltaTime;
+
+        if (transform.position.x > 0)
+            xRotation *= -1;
+
+        if (transform.position.z < 0)
+            zRotation *= -1;
+
+        transform.Rotate(xRotation, 0, zRotation);
+
+        Profiler.EndSample(); // end profiling
+
+        Profiler.BeginSample("Moving"); // begin profiling
+
+        Move();
+
+        Profiler.EndSample(); // end profiling
+
+        Profiler.BeginSample("Boundary Check"); // begin profiling
+
+        //check if we are moving away from the zone and invert velocity if this is the case
+        if ((transform.position.x > areaSize.x && currentVelocity.x > 0)
+            || (transform.position.x < -areaSize.x && currentVelocity.x < 0))
+        {
+            currentVelocity.x *= -1;
+            PickNewVelocityChangeTime(); //we pick a new change time as we changed velocity
+        }
+
+        if ((transform.position.z > areaSize.z && currentVelocity.z > 0)
+            || (transform.position.z < -areaSize.z && currentVelocity.z < 0))
+        {
+            currentVelocity.z *= -1;
+            PickNewVelocityChangeTime(); //we pick a new change time as we changed velocity
+        }
+
+        Profiler.EndSample(); // end profiling
 
         if (transform.position.x > 0)
             xRotation *= -1;
